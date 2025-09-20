@@ -1,0 +1,99 @@
+version: '3.8'
+services:
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    restart: unless-stopped
+    networks:
+      - microservice-net
+
+  users-api:
+    build:
+      context: ./users-api
+    ports:
+      - "8083:8083"
+    environment:
+      JAVA_OPTS: ""
+      JWT_SECRET: JWT_SECRET
+    restart: unless-stopped
+    networks:
+      - microservice-net
+
+  auth-api:
+    build:
+      context: ./auth-api
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_API_PORT: 8080
+      JWT_SECRET: JWT_SECRET
+      USERS_API_ADDRESS: http://users-api:8083
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - users-api
+    restart: unless-stopped
+    networks:
+      - microservice-net
+
+  todos-api:
+    build:
+      context: ./todos-api
+    ports:
+      - "8082:8082"
+    environment:
+      TODO_API_PORT: 8082
+      JWT_SECRET: JWT_SECRET
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CHANNEL: todos
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - redis
+      - zipkin
+    restart: unless-stopped
+    networks:
+      - microservice-net
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8081:80"
+    environment:
+      AUTH_API_ADDRESS: http://auth-api:8080
+      TODOS_API_ADDRESS: http://todos-api:8082
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - auth-api
+      - todos-api
+      - zipkin
+    restart: unless-stopped
+    networks:
+      - microservice-net
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - microservice-net
+
+  log-message-processor:
+    build:
+      context: ./log-message-processor
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CHANNEL: todos
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - microservice-net
+
+networks:
+  microservice-net:
+    driver: bridge

@@ -1,5 +1,6 @@
 'use strict';
 const express = require('express')
+const cors = require('cors')
 const bodyParser = require("body-parser")
 const jwt = require('express-jwt')
 
@@ -33,6 +34,7 @@ const port = process.env.TODO_API_PORT || 8082
 const jwtSecret = process.env.JWT_SECRET || "foo"
 
 const app = express()
+app.use(cors())
 
 // tracing
 const ctxImpl = new CLSContext('zipkin');
