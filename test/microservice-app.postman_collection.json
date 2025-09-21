@@ -1,0 +1,353 @@
+{
+	"info": {
+		"_postman_id": "86024f45-1dd2-4a49-ba85-03480806fb14",
+		"name": "microservice-app",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47026171"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"token\", jsonData.accessToken);",
+									"pm.test('Response status code is 200', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"})",
+									"",
+									"pm.test('Response should contain the required field accessToken', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('accessToken').that.is.a('string');",
+									"})",
+									"",
+									"pm.test('Access token must be a non-empty string', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.accessToken).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, 'Access token should not be empty');",
+									"})",
+									"",
+									"pm.test('Response time is less than 200ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"admin\",\r\n  \"password\": \"admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{auth-api}}/login",
+							"host": [
+								"{{auth-api}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get user by username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response status code is 200', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"})",
+									"",
+									"pm.test('Response content type is application/json', function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"})",
+									"",
+									"pm.test('Response has required fields', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.all.keys('username', 'firstname', 'lastname', 'role');",
+									"})",
+									"",
+									"pm.test('Username is a non-empty string', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.username).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, 'Username should not be empty');",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{users-api}}/users/admin",
+							"host": [
+								"{{users-api}}"
+							],
+							"path": [
+								"users",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "To-do",
+			"item": [
+				{
+					"name": "Get all to-do",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const t = pm.collectionVariables.get(\"token\");\r",
+									"if (t) {\r",
+									"    pm.request.headers.upsert({ key: \"Authorization\", value: `Bearer ${t}` });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test('Response status code is 200', function () {",
+									"    pm.expect(pm.response.code).to.eql(200);",
+									"})",
+									"",
+									"pm.test('Each todo item must have the required fields - id and content', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    Object.keys(responseData).forEach(function (key) {",
+									"        pm.expect(responseData[key]).to.have.all.keys('id', 'content');",
+									"        pm.expect(responseData[key].id).to.be.a('number');",
+									"        pm.expect(responseData[key].content).to.be.a('string');",
+									"    });",
+									"})",
+									"",
+									"pm.test('Content must be a non-empty string for each todo item', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    Object.values(responseData).forEach(function (todo) {",
+									"        pm.expect(todo).to.have.property('content');",
+									"        pm.expect(todo.content).to.be.a('string').and.to.have.lengthOf.at.least(1, 'Content should not be empty');",
+									"    });",
+									"})",
+									"",
+									"pm.test('Response contains a maximum of 5 todo items', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(Object.keys(responseData)).to.have.lengthOf.at.most(5, 'There should be a maximum of 5 todo items');",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{todo-api}}/todos",
+							"host": [
+								"{{todo-api}}"
+							],
+							"path": [
+								"todos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New to-do",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const t = pm.collectionVariables.get(\"token\");\r",
+									"if (t) {\r",
+									"    pm.request.headers.upsert({ key: \"Authorization\", value: `Bearer ${t}` });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"idToDo\", jsonData.id);",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response contains required fields: content and id\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.all.keys('content', 'id');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content must be a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.content).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, \"Content should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"ID must be a positive integer\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.id).to.exist.and.to.be.a('number').and.to.be.above(0);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"content\": \"Mi primer TODO\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{todo-api}}/todos",
+							"host": [
+								"{{todo-api}}"
+							],
+							"path": [
+								"todos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete to-do",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const t = pm.collectionVariables.get(\"token\");\r",
+									"if (t) {\r",
+									"    pm.request.headers.upsert({ key: \"Authorization\", value: `Bearer ${t}` });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{todo-api}}/todos/{{idToDo}}",
+							"host": [
+								"{{todo-api}}"
+							],
+							"path": [
+								"todos",
+								"{{idToDo}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "idToDo",
+			"value": ""
+		}
+	]
+}
