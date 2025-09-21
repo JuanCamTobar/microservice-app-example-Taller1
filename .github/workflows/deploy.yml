@@ -1,0 +1,37 @@
+name: Deploy Microservices
+
+on:
+  push:
+    branches:
+      - staging   # 👈 igual que en tu Jenkinsfile, solo deploy en staging
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # corre en tu runner local
+
+    steps:
+      - name: Checkout staging
+        uses: actions/checkout@v2
+        with:
+          ref: staging
+
+      - name: Build & Deploy with Docker Compose
+        run: |
+          echo "Levantando microservicios con docker-compose..."
+          docker-compose down || true
+          docker-compose up -d --build
+
+      - name: Smoke Test
+        run: |
+          echo "Esperando que los servicios arranquen..."
+          sleep 5
+          echo "Probando el API Gateway en http://localhost:8080/ ..."
+          curl -f http://localhost:8080/ || exit 1
+
+      - name: Resultado
+        if: success()
+        run: echo "✅ Despliegue exitoso con docker-compose."
+      
+      - name: Error
+        if: failure()
+        run: echo "❌ Falló el despliegue, revisa logs."
