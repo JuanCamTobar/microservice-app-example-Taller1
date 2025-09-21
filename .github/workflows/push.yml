@@ -1,0 +1,17 @@
+name: Orchestrator - Validate & Deploy
+
+on:
+  push:
+    branches:
+      - staging
+  pull_request:
+    branches:
+      - staging
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/tests.yml   
+
+  run-deploy:
+    needs: run-tests                    
+    uses: ./.github/workflows/deploy.yml  
