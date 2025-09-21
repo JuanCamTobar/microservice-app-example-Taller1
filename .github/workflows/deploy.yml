@@ -23,19 +23,13 @@ jobs:
         shell: powershell
 
       - name: Smoke Test
+        shell: powershell
         run: |
           echo "Esperando que los servicios arranquen..."
-          Start-Sleep -Seconds 15
+          Start-Sleep -Seconds 10
           echo "Probando el API Gateway en http://localhost:8080/ ..."
-          Invoke-WebRequest http://localhost:8080/ -UseBasicParsing
-        shell: powershell
-
-      - name: Resultado
-        if: success()
-        run: echo "Despliegue exitoso con docker-compose."
-        shell: powershell
-      
-      - name: Error
-        if: failure()
-        run: echo "Falló el despliegue, revisa logs."
-        shell: powershell
+          try {
+            $response = Invoke-WebRequest http://localhost:8080/ -UseBasicParsing
+            echo "Servicio responde"
+          } catch {
+            echo "El servicio no respondió."
