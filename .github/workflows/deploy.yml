@@ -25,7 +25,7 @@ jobs:
       - name: Smoke Test
         run: |
           echo "Esperando que los servicios arranquen..."
-          Start-Sleep -Seconds 5
+          Start-Sleep -Seconds 15
           echo "Probando el API Gateway en http://localhost:8080/ ..."
           Invoke-WebRequest http://localhost:8080/ -UseBasicParsing
         shell: powershell
