@@ -2,6 +2,7 @@ name: Deploy
 
 on:
   workflow_call:   
+
 jobs:
   deploy:
     runs-on: self-hosted
@@ -15,5 +16,6 @@ jobs:
           docker-compose up -d --build
         shell: powershell
 
-      - name: Run infrastructure tests
-        uses: ./.github/workflows/infratest.yml
+  test-infra:
+    needs: deploy          
+    uses: ./.github/workflows/infratest.yml
