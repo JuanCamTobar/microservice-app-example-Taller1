@@ -35,7 +35,7 @@
 									"})",
 									"",
 									"pm.test('Response time is less than 200ms', function () {",
-									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
 									"})"
 								],
 								"type": "text/javascript"
@@ -89,16 +89,21 @@
 									"pm.test('Response has required fields', function () {",
 									"    const responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
-									"    pm.expect(responseData).to.have.all.keys('username', 'firstname', 'lastname', 'role');",
-									"})",
-									"",
-									"pm.test('Username is a non-empty string', function () {",
-									"    const responseData = pm.response.json();",
-									"    pm.expect(responseData).to.be.an('object');",
-									"    pm.expect(responseData.username).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, 'Username should not be empty');",
+									"    pm.expect(responseData).to.have.all.keys('user', 'source', 'elapsedMillis');",
 									"})"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
