@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Test Frontend
-        shell: pwsh
+        shell: powershell
         run: |
           Write-Host "Testing frontend on port 8081..."
           try {
@@ -24,7 +24,7 @@ jobs:
           }
 
       - name: Test Auth API /version
-        shell: pwsh
+        shell: powershell
         run: |
           Write-Host "Testing Auth API /version..."
           try {
@@ -40,7 +40,7 @@ jobs:
           }
 
       - name: Test backend health endpoints
-        shell: pwsh
+        shell: powershell
         run: |
           foreach ($port in 8082,8083) {
             Write-Host "Testing health endpoint on port $port..."
