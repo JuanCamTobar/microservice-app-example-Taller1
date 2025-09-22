@@ -14,3 +14,6 @@ jobs:
           docker-compose down
           docker-compose up -d --build
         shell: powershell
+
+      - name: Run infrastructure tests
+        uses: ./.github/workflows/infratest.yml

@@ -48,6 +48,11 @@ const localServiceName = 'todos-api';
 const tracer = new Tracer({ctxImpl, recorder, localServiceName});
 
 
+// health endpoint should be available without authentication
+app.get('/health', function (req, res) {
+  res.status(200).json({ status: 'ok' })
+})
+
 app.use(jwt({ secret: jwtSecret }))
 app.use(zipkinMiddleware({tracer}));
 app.use(function (err, req, res, next) {

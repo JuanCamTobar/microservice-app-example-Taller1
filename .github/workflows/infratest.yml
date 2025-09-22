@@ -1,0 +1,58 @@
+name: Run Infra Tests
+
+on:
+  workflow_call:
+
+jobs:
+  infra-tests:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Test Frontend
+        shell: pwsh
+        run: |
+          Write-Host "Testing frontend on port 8081..."
+          try {
+            $response = Invoke-RestMethod http://localhost:8081 -Method Head -ErrorAction Stop
+            Write-Host "Frontend test passed"
+          } catch {
+            Write-Error "Frontend test failed: $_"
+            exit 1
+          }
+
+      - name: Test Auth API /version
+        shell: pwsh
+        run: |
+          Write-Host "Testing Auth API /version..."
+          try {
+            $response = Invoke-RestMethod http://localhost:8080/version
+            if ($response -ne "Auth API, written in Go") {
+              Write-Error "Auth API test failed: got '$response'"
+              exit 1
+            }
+            Write-Host "Auth API test passed"
+          } catch {
+            Write-Error "Auth API test failed: $_"
+            exit 1
+          }
+
+      - name: Test backend health endpoints
+        shell: pwsh
+        run: |
+          foreach ($port in 8082,8083) {
+            Write-Host "Testing health endpoint on port $port..."
+            try {
+              $response = Invoke-RestMethod http://localhost:$port/health
+              if ($response.status -ne "ok") {
+                Write-Error "Health check failed on port $port: got '$($response | ConvertTo-Json)'"
+                exit 1
+              }
+              Write-Host "Health check passed on port $port"
+            } catch {
+              Write-Error "Health check failed on port $port: $_"
+              exit 1
+            }
+          }
