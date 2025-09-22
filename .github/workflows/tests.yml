@@ -1,0 +1,20 @@
+  name: Run Tests
+
+  on:
+    workflow_call:
+
+  jobs:
+    tests:
+      runs-on: self-hosted
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Install Newman locally
+          run: npm install newman
+
+        - name: Run API Tests with Newman
+          run: |
+            npx newman run test/microservice-app.postman_collection.json `
+              -e test/microservice-app.postman_environment.json
+          shell: powershell

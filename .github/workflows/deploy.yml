@@ -1,0 +1,21 @@
+name: Deploy
+
+on:
+  workflow_call:   
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build & Deploy with Docker Compose
+        run: |
+          docker-compose down
+          docker-compose up -d --build
+        shell: powershell
+
+  test-infra:
+    needs: deploy          
+    uses: ./.github/workflows/infratest.yml
