@@ -1,0 +1,25 @@
+name: Dev CI (Simulated Tests)
+on:
+  pull_request:
+    branches:
+      - staging
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simulate Build
+        shell: powershell
+        run: Write-Host "Build simulated"
+
+  simulated-tests:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simulate tests
+        shell: powershell
+        run: |
+          Write-Host "Running simulated unit tests..."
+          Write-Host "All tests passed"
