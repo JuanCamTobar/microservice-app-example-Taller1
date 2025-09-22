@@ -29,7 +29,7 @@ jobs:
           Write-Host "Testing Auth API /version..."
           try {
             $response = Invoke-RestMethod http://localhost:8080/version
-            if ($response -ne "Auth API, written in Go") {
+            if ($response.Trim() -ne "Auth API, written in Go") {
               Write-Error "Auth API test failed: got '$response'"
               exit 1
             }
