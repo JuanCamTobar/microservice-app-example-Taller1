@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	zipkin "github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
@@ -9,12 +10,12 @@ import (
 )
 
 type TracedClient struct {
-	client *zipkinhttp.Client
+	client *http.Client
 }
 
+// Implementa HTTPDoer
 func (c *TracedClient) Do(req *http.Request) (*http.Response, error) {
-	name := req.Method + " " + req.RequestURI
-	return c.client.DoWithAppSpan(req, name)
+	return c.client.Do(req)
 }
 
 func initTracing(zipkinURL string) (func(http.Handler) http.Handler, *TracedClient, error) {
@@ -25,23 +26,27 @@ func initTracing(zipkinURL string) (func(http.Handler) http.Handler, *TracedClie
 		return nil, nil, err
 	}
 
-	tracer, err := zipkin.NewTracer(reporter,
+	tracer, err := zipkin.NewTracer(
+		reporter,
 		zipkin.WithLocalEndpoint(endpoint),
-		zipkin.WithSharedSpans(false))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// create global zipkin http server middleware
-	serverMiddleware := zipkinhttp.NewServerMiddleware(
-		tracer, zipkinhttp.TagResponseSize(true),
+		zipkin.WithSharedSpans(false),
 	)
-
-	// create global zipkin traced http client
-	client, err := zipkinhttp.NewClient(tracer, zipkinhttp.ClientTrace(true))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return serverMiddleware, &TracedClient{client}, nil
+	serverMiddleware := zipkinhttp.NewServerMiddleware(tracer, zipkinhttp.TagResponseSize(true))
+
+	// IMPORTANTE: esta función devuelve (RoundTripper, error)
+	transport, err := zipkinhttp.NewTransport(tracer)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   800 * time.Millisecond,
+	}
+
+	return serverMiddleware, &TracedClient{client: client}, nil
 }
