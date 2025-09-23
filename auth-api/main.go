@@ -30,7 +30,7 @@ func main() {
 		jwtSecret = v
 	}
 
-	httpClient := &http.Client{Timeout: 800 * time.Millisecond}
+	httpClient := &http.Client{Timeout: 2 * time.Second}
 
 	cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
 		Name:        "users-api",
@@ -94,7 +94,7 @@ func getLoginHandler(userService UserService) echo.HandlerFunc {
 			return ErrHttpGenericMessage
 		}
 
-		ctx, cancel := context.WithTimeout(c.Request().Context(), 900*time.Millisecond)
+		ctx, cancel := context.WithTimeout(c.Request().Context(), 2*time.Second)
 		defer cancel()
 
 		user, err := userService.Login(ctx, requestData.Username, requestData.Password)

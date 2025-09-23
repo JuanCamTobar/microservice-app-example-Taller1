@@ -33,19 +33,17 @@ type UserService struct {
 	cb                *gobreaker.CircuitBreaker
 }
 
-// (Opcional) Constructor si lo quieres usar desde main.go
 func NewUserService(userAPI string, allowed map[string]interface{}) *UserService {
 	cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
 		Name:        "users-api",
-		MaxRequests: 3,                // en Half-Open
-		Interval:    30 * time.Second, // resetea contadores
-		Timeout:     10 * time.Second, // cuánto dura Open
+		MaxRequests: 3,
+		Interval:    30 * time.Second,
+		Timeout:     10 * time.Second,
 		ReadyToTrip: func(c gobreaker.Counts) bool {
-			// abre con >=50% fallos y mínimo 10 requests
 			return c.Requests >= 10 && float64(c.TotalFailures)/float64(c.Requests) >= 0.5
 		},
 	})
-	httpClient := &http.Client{Timeout: 800 * time.Millisecond}
+	httpClient := &http.Client{Timeout: 2 * time.Second}
 
 	return &UserService{
 		Client:            httpClient,
@@ -123,7 +121,5 @@ func (h *UserService) getUserAPIToken(username string) (string, error) {
 	claims := t.Claims.(jwt.MapClaims)
 	claims["username"] = username
 	claims["scope"] = "read"
-	// Puedes añadir expiración corta si quieres
-	// claims["exp"] = time.Now().Add(5 * time.Minute).Unix()
 	return t.SignedString([]byte(jwtSecret))
 }
