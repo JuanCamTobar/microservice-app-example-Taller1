@@ -45,7 +45,7 @@ func initTracing(zipkinURL string) (func(http.Handler) http.Handler, *TracedClie
 
 	client := &http.Client{
 		Transport: transport,
-		Timeout:   800 * time.Millisecond,
+		Timeout:   2 * time.Second,
 	}
 
 	return serverMiddleware, &TracedClient{client: client}, nil
